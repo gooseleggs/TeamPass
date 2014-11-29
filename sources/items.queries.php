@@ -1267,6 +1267,16 @@ if (isset($_POST['type'])) {
                     $arrData['anyone_can_modify'] = $dataItem['anyone_can_modify'];
                 }
 
+                // statistics
+                DB::update(
+                    $pre."items",
+                    array(
+                        'viewed_no' => $dataItem['viewed_no']+1,
+                    ),
+                    "id = %i",
+                    $_POST['id']
+                );
+
                 // get fields
                 $fieldsTmp = $arrCatList = "";
                 if (
@@ -2907,14 +2917,20 @@ if (isset($_POST['type'])) {
                                 array_push($arrayPf, $record['id']);
                             }
                         }
-                    }                    
-                    
+                    }
+
+                    $where = new WhereClause('and');
+                    $where->add('id_tree = %i', $idFolder);
+                    $where->add('label = %s', $label);
+                    if (!empty($arrayPf)) {
+                        $where->add("id_tree NOT IN (".implode(',', $arrayPf).")");
+                    }
+
                     DB::query(
                         "SELECT label
                         FROM ".$pre."items
-                        WHERE id_tree = %i AND label = %s AND id_tree NOT IN (".explode(',', $arrayPf).")",
-                        $idFolder,
-                        $label
+                        WHERE %l",
+                        $where
                     );
                 }
                 
